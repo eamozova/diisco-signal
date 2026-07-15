@@ -1,22 +1,23 @@
 import torch
 from functools import partial
-from diisco.math_ops import rbf_kernel, rbf_kernel_double
-from diisco.gaussian_process import GaussianProcessRegressor, GaussianProcessRegressorDouble
+from diisco.math_ops import rbf_kernel
+from diisco.gaussian_process import GaussianProcessRegressorDoubleSep
 
 
 class PriorFModel:
-    #def __init__(self, length_scale, variance, sigma_y):
-    def __init__(self, length_scale_t, length_scale_s, variance, sigma_y):
-        #self.length_scale = length_scale
-        self.length_scale_t = length_scale_t
-        self.length_scale_s = length_scale_s
+    def __init__(self, length_scale, variance, sigma_y):
+    #def __init__(self, length_scale_t, length_scale_s, variance, sigma_y):
+        self.length_scale = length_scale
         self.variance = variance
         self.sigma_y = sigma_y
 
-        self.kernel = partial(
-        #    rbf_kernel, length_scale=length_scale, variance=variance
-            rbf_kernel_double, length_scale_1=length_scale_t, length_scale_2=length_scale_s, variance=variance
+        self.kernel_baseline = partial(
+            rbf_kernel, length_scale=length_scale, variance=variance
         )
+        self.kernel_effect = partial(
+            rbf_kernel, length_scale=length_scale, variance=variance
+        )
+
         self.models = None
 
         self.is_fitted = False
@@ -52,7 +53,7 @@ class PriorFModel:
         :return:
         """
         #model = GaussianProcessRegressor(self.kernel, self.sigma_y)
-        model = GaussianProcessRegressorDouble(self.kernel, self.sigma_y)
+        model = GaussianProcessRegressorDoubleSep(self.kernel_baseline, self.kernel_effect, self.sigma_y)
 
         # Make sure that the target is a column vector
         target = target.reshape(-1, 1)

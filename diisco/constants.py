@@ -9,9 +9,9 @@ import diisco.names as names
 
 DEFAULT_HYPERS = {
     names.LENGTHSCALE_W: 100,
-    #names.LENGTHSCALE_F: 100,
-    names.LENGTHSCALE_F_1: 100,
-    names.LENGTHSCALE_F_2: 100,
+    names.LENGTHSCALE_F: 100,
+    #names.LENGTHSCALE_F_1: 100,
+    #names.LENGTHSCALE_F_2: 100,
     names.VARIANCE_W: 1.0,
     names.VARIANCE_F: 1.0,
     names.SIGMA_Y: 0.2,

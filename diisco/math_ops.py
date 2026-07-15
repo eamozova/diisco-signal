@@ -30,28 +30,37 @@ def rbf_kernel(
     covariance = utils.make_psd(covariance)
     return covariance
 
-def rbf_kernel_double(
+def rbf_kernel_indicator(
+    s1: torch.Tensor,
+    s2: torch.Tensor,
+    variance: float = 1.0,
+) -> torch.Tensor:
+    test_cov = torch.zeros((s1.shape[0],s2.shape[0]))
+    for s in range(s1.shape[0]):
+        for ss in range(s1.shape[0]):
+            if int(s1[s]) == int(s2[ss]):
+                test_cov[s][ss] = 1
+    covariance = variance * test_cov
+    covariance = utils.make_psd(covariance)
+    return covariance
+
+def rbf_kernel_with_indicator(
     t1: torch.Tensor,
     t2: torch.Tensor,
     s1: torch.Tensor,
     s2: torch.Tensor,
-    length_scale_1: float,
-    length_scale_2: float,
-    variance: float = 1.0,
+    length_scale: float,
+    variance_t: float = 1.0,
+    variance_s: float = 1.0,
 ) -> torch.Tensor:
-    """
-    Compute the RBF kernel between (t1 and t2) and (s1 and s2).
-    :param t1: First input. shape: (n1, d)
-    :param t2: Second input. shape: (n2, d)
-    :param length_scale: Length scale of the kernel.
-    :return: Kernel matrix. shape: (n1, n2)
-    """
-    t1_scaled = t1 / length_scale_1
-    t2_scaled = t2 / length_scale_1
-    s1_scaled = s1 / length_scale_2
-    s2_scaled = s2 / length_scale_2
-    dists_t = torch.cdist(t1_scaled, t2_scaled, p=2)
-    dists_s = torch.cdist(s1_scaled, s2_scaled, p=2)
-    covariance = variance * torch.exp(-0.5 * (dists_t**2 + dists_s**2))
+    t1_scaled = t1 / length_scale
+    t2_scaled = t2 / length_scale
+    dists = torch.cdist(t1_scaled, t2_scaled, p=2)
+    test_cov = torch.zeros((s1.shape[0],s2.shape[0]))
+    for s in range(s1.shape[0]):
+        for ss in range(s1.shape[0]):
+            if int(s1[s]) == int(s2[ss]):
+                test_cov[s][ss] = 1
+    covariance = variance_t * torch.exp(-0.5 * dists**2) + variance_s * test_cov
     covariance = utils.make_psd(covariance)
     return covariance

@@ -29,9 +29,9 @@ class DIISCO:
         names.SIGMA_W,
         names.SIGMA_F,
         names.LENGTHSCALE_W,
-        #names.LENGTHSCALE_F,
-        names.LENGTHSCALE_F_1,
-        names.LENGTHSCALE_F_2,
+        names.LENGTHSCALE_F,
+        #names.LENGTHSCALE_F_1,
+        #names.LENGTHSCALE_F_2,
         names.VARIANCE_W,
         names.VARIANCE_F,
     ]
@@ -456,9 +456,9 @@ class DIISCO:
             )
 
             prior_updated_model = PriorFModel(
-                #self.hypers_init_vals[names.LENGTHSCALE_F],
-                self.hypers_init_vals[names.LENGTHSCALE_F_1],
-                self.hypers_init_vals[names.LENGTHSCALE_F_2],
+                self.hypers_init_vals[names.LENGTHSCALE_F],
+                #self.hypers_init_vals[names.LENGTHSCALE_F_1],
+                #self.hypers_init_vals[names.LENGTHSCALE_F_2],
                 self.hypers_init_vals[names.VARIANCE_F],
                 self.hypers_init_vals[names.SIGMA_F],
             )
@@ -533,14 +533,13 @@ class DIISCO:
         :param proportions: Tensor of proportions for the samples.
             shape: (n_timepoints, n_cell_types)
         """
-        #length_scale = hypers[names.LENGTHSCALE_F]
-        length_scale_1 = hypers[names.LENGTHSCALE_F_1]
-        length_scale_2 = hypers[names.LENGTHSCALE_F_2]
+        length_scale = hypers[names.LENGTHSCALE_F]
+        #length_scale_1 = hypers[names.LENGTHSCALE_F_1]
+        #length_scale_2 = hypers[names.LENGTHSCALE_F_2]
         variance = hypers[names.VARIANCE_F]
         sigma_f = hypers[names.SIGMA_F]
         self.prior_model = PriorFModel(
-            #length_scale=length_scale, variance=variance, sigma_y=sigma_f
-            length_scale_t=length_scale_1, length_scale_s=length_scale_2, variance=variance, sigma_y=sigma_f
+            length_scale=length_scale, variance=variance, sigma_y=sigma_f
         )
         self.prior_model.fit(timepoints, signals, proportions)
 

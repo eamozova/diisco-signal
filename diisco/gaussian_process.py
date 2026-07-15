@@ -84,9 +84,10 @@ class GaussianProcessRegressor:
         ), samples.shape
         return samples
 
-class GaussianProcessRegressorDouble:
-    def __init__(self, kernel, sigma_y=1e-6):
-        self.kernel = kernel
+class GaussianProcessRegressorDoubleSep:
+    def __init__(self, kernel_baseline, kernel_effect, sigma_y=1e-6):
+        self.kernel_baseline = kernel_baseline
+        self.kernel_effect = kernel_effect
         self.sigma_y = sigma_y
         self.noise = sigma_y**2
 
@@ -106,10 +107,11 @@ class GaussianProcessRegressorDouble:
         self.t = t
         self.s = s
         self.y = y
-        K = self.kernel(t, t, s, s) + self.noise * torch.eye(t.shape[0])
+        K = self.kernel_baseline(t, t) + self.s * self.s.T * self.kernel_effect(t, t) + self.noise * torch.eye(t.shape[0])
 
         self.L = torch.linalg.cholesky(K)
         self.alpha = torch.cholesky_solve(y, self.L)  # L.T @ L @ alpha = y
+        #print("fit alpha: ", self.alpha)
 
     def predict(self, t, s):
         """
@@ -119,13 +121,14 @@ class GaussianProcessRegressorDouble:
             :mean: The mean of the predicted output. shape (n_samples, n_targets)
             :var: The variance of the predicted output. shape (n_samples, n_samples)
         """
-        K_star = self.kernel(self.t, t, self.s, s)
+        K_star = self.kernel_baseline(self.t, t) + self.s * s.T * self.kernel_effect(self.t, t)
         assert K_star.shape[0] == self.t.shape[0]
         K_star_t = K_star.T
         mean = K_star_t @ self.alpha
+        #print("pred. alpha: ", self.alpha)
         assert mean.shape[0] == t.shape[0]
         v = torch.cholesky_solve(K_star, self.L)
-        var = self.kernel(t, t, s, s) - K_star_t @ v
+        var = self.kernel_baseline(t, t) + s * s.T * self.kernel_effect(t, t) - K_star_t @ v
         var = make_psd(var)
 
         assert mean.shape == (t.shape[0], self.y.shape[1])
